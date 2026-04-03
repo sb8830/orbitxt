@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrbiTxt Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a56ff;
+    --primary-dark: #0f3acc;
+    --accent: #00d4aa;
+    --danger: #ff4757;
+    --warn: #ffa502;
+    --success: #2ed573;
+    --bg: #0a0f1e;
+    --sidebar: #0d1426;
+    --card: #111827;
+    --card2: #141c2e;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e2e8f0;
+    --muted: #6b7280;
+    --white: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center;   /* horizontal center */
+  align-items: center;       /* vertical center */ }
+  h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 240px; min-height: 100vh; background: var(--sidebar);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 50; overflow-y: auto;
+  }
+  .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo h2 { font-size: 1.2rem; font-weight: 800; }
+  .sidebar-logo h2 span { background: linear-gradient(135deg, #1a56ff, #00d4aa);  background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;}
+  .sidebar-nav { flex: 1; padding: 12px 0; }
+  .nav-section { padding: 12px 20px 6px; font-size: 0.65rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: var(--muted); text-decoration: none; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: rgba(26,86,255,0.08); color: var(--text); }
+  .nav-item.active { background: rgba(26,86,255,0.15); color: var(--primary); border-right: 3px solid var(--primary); }
+  .nav-item .icon { width: 18px; font-size: 1rem; text-align: center; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+  .admin-info { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+  .admin-info strong { color: var(--text); display: block; }
+
+  /* MAIN */
+  .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { padding: 0 32px; height: 64px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+  .topbar h1 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .content { padding: 28px 32px; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .card-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--white); }
+  .card-body { padding: 22px; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .stat-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .stat-card .val { font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800; color: var(--white); }
+  .stat-card .sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.82rem; cursor: pointer; text-decoration: none; transition: all 0.15s; border: none; font-family: 'DM Sans', sans-serif; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-danger { background: rgba(255,71,87,0.12); color: var(--danger); border: 1px solid rgba(255,71,87,0.2); }
+  .btn-danger:hover { background: rgba(255,71,87,0.2); }
+  .btn-ghost { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .btn-success { background: rgba(46,213,115,0.12); color: var(--success); border: 1px solid rgba(46,213,115,0.2); }
+  .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+  .btn-icon { padding: 6px 10px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 10px 14px; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; font-size: 0.85rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
+  .badge-admin { background: rgba(26,86,255,0.15); color: #6b9bff; }
+  .badge-client { background: rgba(0,212,170,0.12); color: var(--accent); }
+  .badge-active { background: rgba(46,213,115,0.12); color: var(--success); }
+  .badge-inactive { background: rgba(255,71,87,0.12); color: var(--danger); }
+  .badge-popular { background: rgba(255,165,2,0.15); color: var(--warn); }
+
+  /* FORMS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid.cols1 { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.span2 { grid-column: span 2; }
+  .form-group.span3 { grid-column: span 3; }
+  .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .form-group input, .form-group textarea, .form-group select { padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 8px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.875rem; transition: border-color 0.15s; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--primary); background: rgba(26,86,255,0.06); }
+  .form-group input::placeholder, .form-group textarea::placeholder { color: var(--muted); }
+  .form-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .form-group select option { background: var(--card); }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px; }
+
+  /* SECTION VISIBILITY */
+  .sections-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .section-toggle { background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; transition: border-color 0.2s; }
+  .section-toggle.visible { border-color: rgba(46,213,115,0.3); }
+  .section-toggle.hidden { border-color: rgba(255,71,87,0.2); opacity: 0.7; }
+  .section-toggle-label { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+  .section-toggle-status { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(255,255,255,0.1); border-radius: 24px; transition: 0.3s; }
+  .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: var(--muted); border-radius: 50%; transition: 0.3s; }
+  .toggle input:checked + .toggle-slider { background: var(--success); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: #fff; }
+
+  /* INLINE EDIT */
+  .content-table .value-cell { max-width: 320px; }
+  .editable { cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.15s; }
+  .editable:hover { background: rgba(26,86,255,0.1); }
+  .inline-form { display: flex; gap: 6px; align-items: center; }
+  .inline-form input, .inline-form textarea { flex: 1; }
+
+  /* FEATURE ITEMS */
+  .feature-item, .service-item, .industry-item {
+    background: var(--card2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px;
+  }
+  .item-icon { font-size: 1.4rem; min-width: 32px; }
+  .item-info { flex: 1; }
+  .item-info h4 { font-size: 0.875rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+  .item-info p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+  .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .items-list { display: flex; flex-direction: column; gap: 10px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.04); border-radius: 10px; padding: 4px; margin-bottom: 24px; width: fit-content; }
+  .tab { padding: 8px 18px; border-radius: 7px; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--muted); transition: all 0.15s; border: none; background: none; font-family: 'DM Sans', sans-serif; }
+  .tab.active { background: var(--primary); color: #fff; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border2); border-radius: 18px; padding: 32px; width: 100%; max-width: 560px; margin: 16px; max-height: 90vh; overflow-y: auto; }
+  .modal-lg { max-width: 700px; }
+  .modal h2 { font-size: 1.2rem; color: var(--white); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; z-index: 500; padding: 12px 20px; border-radius: 10px; font-size: 0.875rem; font-weight: 500; animation: slideUp 0.3s ease; }
+  .toast-success { background: rgba(46,213,115,0.15); border: 1px solid rgba(46,213,115,0.4); color: var(--success); }
+  .toast-error { background: rgba(255,71,87,0.15); border: 1px solid rgba(255,71,87,0.4); color: var(--danger); }
+  @keyframes slideUp { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* LOGIN */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+  .login-box { background: var(--card); border: 1px solid var(--border2); border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; }
+  .login-box h1 { font-size: 1.6rem; color: var(--white); margin-bottom: 6px; }
+  .login-box p { color: var(--muted); font-size: 0.875rem; margin-bottom: 28px; }
+  .login-error { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3); border-radius: 8px; padding: 10px 14px; color: #ff8080; font-size: 0.85rem; margin-bottom: 16px; display: none; }
+  .login-error.active { display: block; }
+
+  /* ACTIVITY */
+  .activity-item { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
+  .activity-action { font-size: 0.85rem; color: var(--text); font-weight: 600; }
+  .activity-detail { font-size: 0.78rem; color: var(--muted); }
+  .activity-time { font-size: 0.72rem; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+  /* PLAN FEATURES INPUT */
+  .features-input-area { background: rgba(255,255,255,0.03); border: 1px solid var(--border2); border-radius: 8px; padding: 10px; }
+  .feature-tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .feature-tag { display: flex; align-items: center; gap: 4px; padding: 3px 10px; background: rgba(26,86,255,0.12); border-radius: 100px; font-size: 0.78rem; color: #6b9bff; }
+  .feature-tag button { background: none; border: none; color: #6b9bff; cursor: pointer; font-size: 0.9rem; line-height: 1; padding: 0 2px; }
+  .feature-add-row { display: flex; gap: 6px; }
+  .feature-add-row input { flex: 1; padding: 6px 10px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--white); font-size: 0.82rem; font-family: 'DM Sans', sans-serif; }
+  .feature-add-row input:focus { outline: none; border-color: var(--primary); }
+
+  .empty-state { text-align: center; padding: 40px; color: var(--muted); }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .span2, .form-grid .span3 { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="login-wrap">
+  <div class="login-box">
+    <h1>Admin Login</h1>
+    <p>Sign in to access the OrbiTxt admin panel</p>
+    <div class="login-error" id="loginErr"></div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Email</label>
+      <input type="email" id="adminEmail" placeholder="admin@orbitxt.com" />
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label>Password</label>
+      <input type="password" id="adminPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:0.95rem" onclick="doAdminLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;width:100%;display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2><span id="sb-company">OrbiTxt</span></h2>
+      <p>Admin Panel</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span>Dashboard</button>
+      <div class="nav-section">Content</div>
+      <button class="nav-item" onclick="showPage('sections')"><span class="icon">👁</span>Section Visibility</button>
+      <button class="nav-item" onclick="showPage('content')"><span class="icon">✏️</span>Site Content</button>
+      <button class="nav-item" onclick="showPage('stats')"><span class="icon">📈</span>Hero Stats</button>
+      <div class="nav-section">Services</div>
+      <button class="nav-item" onclick="showPage('services')"><span class="icon">⚙️</span>Services</button>
+      <button class="nav-item" onclick="showPage('features')"><span class="icon">💡</span>Why Choose Us</button>
+      <button class="nav-item" onclick="showPage('industries')"><span class="icon">🏢</span>Industries</button>
+      <div class="nav-section">Plans & Users</div>
+      <button class="nav-item" onclick="showPage('plans')"><span class="icon">💳</span>Pricing Plans</button>
+      <button class="nav-item" onclick="showPage('users')"><span class="icon">👥</span>Users</button>
+      <div class="nav-section">Leads & Logs</div>
+      <button class="nav-item" onclick="showPage('leads')"><span class="icon">🎯</span>Leads <span id="lead-badge" style="margin-left:auto;background:rgba(255,107,53,.2);color:#ff6b35;border-radius:100px;padding:1px 8px;font-size:.7rem;font-weight:700;display:none">0</span></button>
+      <button class="nav-item" onclick="showPage('activity')"><span class="icon">🕐</span>Activity Log</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-info">
+        <strong id="sb-email">admin@orbitxt.com</strong>
+        Administrator
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="topbar-right">
+        <a href="/" target="_blank" class="btn btn-ghost btn-sm">🌐 View Website</a>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="stats-row" style="grid-template-columns:repeat(5,1fr)">
+          <div class="stat-card"><div class="label">Total Clients</div><div class="val" id="d-total">—</div></div>
+          <div class="stat-card"><div class="label">Active Clients</div><div class="val" id="d-active">—</div></div>
+          <div class="stat-card"><div class="label">Active Plans</div><div class="val" id="d-plans">—</div></div>
+          <div class="stat-card"><div class="label">Recent Signups</div><div class="val" id="d-recent">—</div></div>
+          <div class="stat-card" style="cursor:pointer;border-color:rgba(255,107,53,.2)" onclick="showPage('leads')"><div class="label" style="color:#ff6b35">🎯 New Leads</div><div class="val" id="d-leads" style="color:#ff6b35">—</div><div class="sub" style="font-size:.7rem;color:var(--muted);margin-top:2px">Click to view →</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div class="card">
+            <div class="card-header"><h3>Recent Clients</h3></div>
+            <div class="card-body table-wrap"><table><thead><tr><th>Company</th><th>Email</th><th>Joined</th></tr></thead><tbody id="d-users"></tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Recent Activity</h3></div>
+            <div class="card-body" id="d-activity"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION VISIBILITY -->
+      <div id="page-sections" class="page">
+        <div class="card">
+          <div class="card-header"><h3>Section Visibility</h3><span style="font-size:0.78rem;color:var(--muted)">Toggle sections on/off on the public website</span></div>
+          <div class="card-body">
+            <div class="sections-grid" id="sections-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SITE CONTENT -->
+      <div id="page-content" class="page">
+        <div class="card">
+          <div class="card-header"><h3>Site Content</h3><span style="font-size:0.78rem;color:var(--muted)">Click any value to edit inline</span></div>
+          <div class="card-body table-wrap">
+            <table class="content-table">
+              <thead><tr><th>Section</th><th>Field</th><th>Value</th><th></th></tr></thead>
+              <tbody id="content-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div id="page-stats" class="page">
+        <div class="card">
+          <div class="card-header"><h3>Hero Stats</h3></div>
+          <div class="card-body table-wrap">
+            <table><thead><tr><th>Label</th><th>Value</th><th>Action</th></tr></thead><tbody id="stats-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERVICES -->
+      <div id="page-services" class="page">
+        <div class="card">
+          <div class="card-header">
+            <h3>Services</h3>
+            <button class="btn btn-primary btn-sm" onclick="openServiceModal()">+ Add Service</button>
+          </div>
+          <div class="card-body"><div class="items-list" id="services-list"></div></div>
+        </div>
+      </div>
+
+      <!-- FEATURES (WHY US) -->
+      <div id="page-features" class="page">
+        <div class="card">
+          <div class="card-header">
+            <h3>Why Choose Us — Features</h3>
+            <button class="btn btn-primary btn-sm" onclick="openFeatureModal()">+ Add Feature</button>
+          </div>
+          <div class="card-body"><div class="items-list" id="features-list"></div></div>
+        </div>
+      </div>
+
+      <!-- INDUSTRIES -->
+      <div id="page-industries" class="page">
+        <div class="card">
+          <div class="card-header">
+            <h3>Industries</h3>
+            <button class="btn btn-primary btn-sm" onclick="openIndustryModal()">+ Add Industry</button>
+          </div>
+          <div class="card-body"><div class="items-list" id="industries-list"></div></div>
+        </div>
+      </div>
+
+      <!-- PLANS -->
+      <div id="page-plans" class="page">
+        <div class="card">
+          <div class="card-header">
+            <h3>Pricing Plans</h3>
+            <button class="btn btn-primary btn-sm" onclick="openPlanModal()">+ Add Plan</button>
+          </div>
+          <div class="card-body table-wrap">
+            <table><thead><tr><th>Name</th><th>Price</th><th>SMS</th><th>Status</th><th>Popular</th><th>Actions</th></tr></thead><tbody id="plans-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="page-users" class="page">
+        <div class="card">
+          <div class="card-header">
+            <h3>Users</h3>
+            <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
+          </div>
+          <div class="card-body table-wrap">
+            <table><thead><tr><th>Company</th><th>Email</th><th>Role</th><th>Panel URL</th><th>Panel Creds</th><th>Auto Login</th><th>Credits</th><th>Status</th><th>Actions</th></tr></thead><tbody id="users-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEADS -->
+      <div id="page-leads" class="page">
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:22px" id="lead-stats-row">
+          <div class="stat-card" id="ls-all" style="cursor:pointer;border:1px solid var(--border)" onclick="filterLeads('all')"><div class="label">All Leads</div><div class="val" id="lc-all">0</div></div>
+          <div class="stat-card" id="ls-new" style="cursor:pointer" onclick="filterLeads('new')"><div class="label" style="color:#60a5fa">🆕 New</div><div class="val" id="lc-new">0</div></div>
+          <div class="stat-card" id="ls-contacted" style="cursor:pointer" onclick="filterLeads('contacted')"><div class="label" style="color:#a78bfa">📞 Contacted</div><div class="val" id="lc-contacted">0</div></div>
+          <div class="stat-card" id="ls-qualified" style="cursor:pointer" onclick="filterLeads('qualified')"><div class="label" style="color:#34d399">✅ Qualified</div><div class="val" id="lc-qualified">0</div></div>
+          <div class="stat-card" id="ls-converted" style="cursor:pointer" onclick="filterLeads('converted')"><div class="label" style="color:#fbbf24">🏆 Converted</div><div class="val" id="lc-converted">0</div></div>
+          <div class="stat-card" id="ls-lost" style="cursor:pointer" onclick="filterLeads('lost')"><div class="label" style="color:#f87171">❌ Lost</div><div class="val" id="lc-lost">0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Leads <span id="lead-filter-label" style="font-size:.75rem;color:var(--muted);font-weight:400;margin-left:6px">— All</span></h3>
+            <div style="display:flex;gap:10px;align-items:center">
+              <input id="lead-search" placeholder="Search by name, email, company..." style="padding:7px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;color:var(--white);font-size:.82rem;font-family:DM Sans,sans-serif;width:260px" oninput="searchLeads(this.value)" />
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="leads-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Source</th>
+                  <th>Status</th>
+                  <th>Received</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leads-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEAD DETAIL MODAL -->
+      <div class="modal-overlay" id="leadModal">
+        <div class="modal modal-lg" style="max-width:580px">
+          <h2 id="leadModalTitle">Lead Details</h2>
+          <div id="lead-detail-body"></div>
+          <div style="margin-top:20px">
+            <div style="margin-bottom:12px">
+              <label style="font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px">Status</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap" id="lead-status-btns"></div>
+            </div>
+            <div>
+              <label style="font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px">Admin Notes</label>
+              <textarea id="lead-notes" rows="3" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;color:var(--white);font-family:DM Sans,sans-serif;font-size:.875rem;resize:vertical"></textarea>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-danger btn-sm" onclick="deleteLead(currentLeadId)">🗑 Delete Lead</button>
+            <button class="btn btn-ghost" onclick="closeModal('leadModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveLead()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY -->
+      <div id="page-activity" class="page">
+        <div class="card">
+          <div class="card-header"><h3>Activity Log</h3></div>
+          <div class="card-body" id="activity-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal modal-lg">
+    <h2 id="userModalTitle">Add User</h2>
+
+    <!-- Portal Login (our website) -->
+    <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Portal Credentials (login to our website)</div>
+    <div class="form-grid" style="margin-bottom:18px">
+      <div class="form-group"><label>Company Name *</label><input id="u-company" placeholder="AcmeCorp" /></div>
+      <div class="form-group"><label>Email *</label><input id="u-email" type="email" placeholder="client@company.com" /></div>
+      <div class="form-group"><label>Password <span id="u-pwd-hint" style="color:var(--muted);font-weight:400">(required)</span></label><input id="u-password" type="password" placeholder="••••••••" /></div>
+      <div class="form-group"><label>Role</label>
+        <select id="u-role"><option value="client">Client</option><option value="admin">Admin</option></select>
+      </div>
+      <div class="form-group"><label>SMS Credits</label><input id="u-credits" type="number" placeholder="0" /></div>
+      <div class="form-group"><label>Status</label>
+        <select id="u-active"><option value="1">Active</option><option value="0">Inactive</option></select>
+      </div>
+    </div>
+
+    <!-- Panel (client's external panel) -->
+    <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Client Panel (external redirect)</div>
+    <div class="form-grid cols1" style="margin-bottom:12px">
+      <div class="form-group"><label>Panel URL</label><input id="u-panel" placeholder="https://panel.company.com/dashboard" /></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="form-group"><label>Panel Username / ID</label><input id="u-puser" placeholder="Username or ID on their panel" /></div>
+      <div class="form-group"><label>Panel Password</label><input id="u-ppass" type="password" placeholder="Password on their panel" /></div>
+    </div>
+
+    <!-- Auto Login Toggle -->
+    <div id="auto-login-box" style="background:rgba(37,99,255,.06);border:1px solid rgba(37,99,255,.2);border-radius:12px;padding:16px 18px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px">
+      <div>
+        <div style="font-size:.88rem;font-weight:700;color:var(--white);margin-bottom:4px">⚡ Auto Login to Panel</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.5">When enabled, the user is redirected <strong style="color:var(--text)">directly to their panel</strong> after logging into our website — no extra login needed. Requires Panel URL, Username and Password to be set.</div>
+      </div>
+      <label class="toggle" style="flex-shrink:0;margin-top:2px">
+        <input type="checkbox" id="u-autologin" onchange="toggleAutoLoginHint()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="auto-login-hint" style="display:none;font-size:.75rem;color:#fbbf24;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:8px;padding:8px 12px;margin-top:6px;margin-bottom:4px">
+      ⚠️ Auto login uses a server-side redirect with credentials. Make sure the Panel URL supports POST-based login or token passthrough.
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()" id="saveUserBtn">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN MODAL -->
+<div class="modal-overlay" id="planModal">
+  <div class="modal">
+    <h2 id="planModalTitle">Add Plan</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Plan Name *</label><input id="p-name" placeholder="Starter" /></div>
+      <div class="form-group"><label>Price (₹/mo, 0 = Custom)</label><input id="p-price" type="number" placeholder="999" /></div>
+      <div class="form-group"><label>SMS Count (-1 = unlimited)</label><input id="p-sms" type="number" placeholder="10000" /></div>
+      <div class="form-group"><label>Panels (-1 = unlimited)</label><input id="p-panels" type="number" placeholder="1" /></div>
+      <div class="form-group"><label>Sort Order</label><input id="p-order" type="number" placeholder="1" /></div>
+      <div class="form-group"><label>Status</label><select id="p-active"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+      <div class="form-group"><label>Mark as Popular</label><select id="p-popular"><option value="0">No</option><option value="1">Yes</option></select></div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Features</label>
+      <div class="features-input-area">
+        <div class="feature-tag-row" id="plan-feature-tags"></div>
+        <div class="feature-add-row">
+          <input id="plan-feature-input" placeholder="Add feature and press Enter..." onkeydown="if(event.key==='Enter'){addPlanFeature();event.preventDefault()}" />
+          <button class="btn btn-ghost btn-sm" onclick="addPlanFeature()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('planModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlan()">Save Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE MODAL -->
+<div class="modal-overlay" id="serviceModal">
+  <div class="modal">
+    <h2 id="serviceModalTitle">Add Service</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Icon (emoji)</label><input id="sv-icon" placeholder="📩" /></div>
+      <div class="form-group"><label>Title *</label><input id="sv-title" placeholder="Bulk SMS Services" /></div>
+      <div class="form-group span2"><label>Description</label><textarea id="sv-desc" placeholder="Short description..."></textarea></div>
+      <div class="form-group"><label>Sort Order</label><input id="sv-order" type="number" placeholder="1" /></div>
+      <div class="form-group"><label>Status</label><select id="sv-active"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label>Bullet Points</label>
+      <div class="features-input-area">
+        <div class="feature-tag-row" id="sv-bullet-tags"></div>
+        <div class="feature-add-row">
+          <input id="sv-bullet-input" placeholder="Add point and press Enter..." onkeydown="if(event.key==='Enter'){addSvBullet();event.preventDefault()}" />
+          <button class="btn btn-ghost btn-sm" onclick="addSvBullet()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('serviceModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveService()">Save Service</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURE MODAL -->
+<div class="modal-overlay" id="featureModal">
+  <div class="modal">
+    <h2 id="featureModalTitle">Add Feature</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Icon (emoji)</label><input id="f-icon" placeholder="⚡" /></div>
+      <div class="form-group"><label>Title *</label><input id="f-title" placeholder="Feature title" /></div>
+      <div class="form-group span2"><label>Description</label><textarea id="f-desc" placeholder="Description..."></textarea></div>
+      <div class="form-group"><label>Sort Order</label><input id="f-order" type="number" placeholder="1" /></div>
+      <div class="form-group"><label>Status</label><select id="f-active"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('featureModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFeature()">Save Feature</button>
+    </div>
+  </div>
+</div>
+
+<!-- INDUSTRY MODAL -->
+<div class="modal-overlay" id="industryModal">
+  <div class="modal">
+    <h2 id="industryModalTitle">Add Industry</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Icon (emoji)</label><input id="i-icon" placeholder="🛒" /></div>
+      <div class="form-group"><label>Name *</label><input id="i-name" placeholder="E-commerce" /></div>
+      <div class="form-group"><label>Sort Order</label><input id="i-order" type="number" placeholder="1" /></div>
+      <div class="form-group"><label>Status</label><select id="i-active"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('industryModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIndustry()">Save Industry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let TOKEN = localStorage.getItem('ot_token');
+let currentPage = 'dashboard';
+let editingUserId = null;
+let editingPlanId = null;
+let editingServiceId = null;
+let editingFeatureId = null;
+let editingIndustryId = null;
+let planFeatures = [];
+let svBullets = [];
+
+// ── AUTH ──
+async function doAdminLogin() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  const err = document.getElementById('loginErr');
+  if (!email || !password) { err.textContent = 'Enter email and password'; err.classList.add('active'); return; }
+  try {
+    const r = await fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+    const data = await r.json();
+    if (!r.ok || data.user?.role !== 'admin') { err.textContent = data.error || 'Admin access required'; err.classList.add('active'); return; }
+    TOKEN = data.token;
+    localStorage.setItem('ot_token', TOKEN);
+    initAdmin(data.user);
+  } catch(e) { err.textContent = 'Server unreachable'; err.classList.add('active'); }
+}
+
+function initAdmin(user) {
+  document.getElementById('loginPage').style.display = 'none';
+  const panel = document.getElementById('adminPanel');
+  panel.style.display = 'flex';
+  panel.style.width = '100%';
+  if (user) {
+    document.getElementById('sb-email').textContent = user.email;
+    document.getElementById('sb-company').textContent = user.company_name || 'OrbiTxt';
+  }
+  loadDashboard();
+  loadLeadBadge();
+}
+
+function logout() {
+  localStorage.removeItem('ot_token');
+  location.reload();
+}
+
+async function apiFetch(url, opts={}) {
+  const r = await fetch(url, { ...opts, headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...(opts.headers||{}) } });
+  if (r.status === 401) { logout(); return null; }
+  return r;
+}
+
+function toast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(`page-${id}`);
+  if (page) page.classList.add('active');
+  const activeBtn = document.querySelector(`.nav-item[onclick=\"showPage('${id}')\"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+  const titles = { dashboard:'Dashboard', sections:'Section Visibility', content:'Site Content', stats:'Hero Stats', services:'Services', features:'Why Choose Us', industries:'Industries', plans:'Pricing Plans', users:'Users', leads:'Leads', activity:'Activity Log' };
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  currentPage = id;
+  const loaders = { dashboard: loadDashboard, sections: loadSections, content: loadContent, stats: loadStats, services: loadServices, features: loadFeatures, industries: loadIndustries, plans: loadPlans, users: loadUsers, leads: loadLeads, activity: loadActivity };
+  if (loaders[id]) loaders[id]().catch(err => { console.error('page load failed', id, err); toast('Failed to load ' + (titles[id] || id), 'error'); });
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const r = await apiFetch('/api/admin/dashboard');
+  if (!r) return;
+  const data = await r.json();
+  document.getElementById('d-total').textContent = data.totalUsers;
+  document.getElementById('d-active').textContent = data.activeUsers;
+  document.getElementById('d-plans').textContent = data.totalPlans;
+  document.getElementById('d-recent').textContent = data.recentUsers.length;
+  // Fetch new leads count
+  apiFetch('/api/admin/leads').then(async lr => { if(lr){ const ld=await lr.json(); document.getElementById('d-leads').textContent=ld.counts.new||0; const b=document.getElementById('lead-badge'); if(b){b.textContent=ld.counts.new;b.style.display=ld.counts.new>0?'inline':'none';} } });
+  document.getElementById('d-users').innerHTML = data.recentUsers.map(u => `<tr><td><strong>${u.company_name}</strong></td><td style="color:var(--muted)">${u.email}</td><td style="color:var(--muted);font-size:0.78rem">${u.created_at.substring(0,10)}</td></tr>`).join('');
+  document.getElementById('d-activity').innerHTML = data.recentActivity.length ? data.recentActivity.slice(0,6).map(a => `
+    <div class="activity-item">
+      <div class="activity-dot"></div>
+      <div><div class="activity-action">${a.action}</div><div class="activity-detail">${a.details || '—'} · ${a.admin_email}</div></div>
+      <div class="activity-time">${a.created_at.substring(0,16).replace('T',' ')}</div>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:0.875rem;padding:12px 0">No activity yet.</div>';
+}
+
+// ── SECTIONS ──
+async function loadSections() {
+  const r = await apiFetch('/api/admin/sections');
+  if (!r) return;
+  const { sections } = await r.json();
+  document.getElementById('sections-grid').innerHTML = sections.map(s => `
+    <div class="section-toggle ${s.visible ? 'visible' : 'hidden'}" id="stog-${s.section_key}">
+      <div>
+        <div class="section-toggle-label">${s.label}</div>
+        <div class="section-toggle-status">${s.visible ? 'Visible' : 'Hidden'}</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${s.visible ? 'checked' : ''} onchange="toggleSection('${s.section_key}', this.checked)" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+}
+
+async function toggleSection(key, visible) {
+  const r = await apiFetch(`/api/admin/sections/${key}`, { method: 'PUT', body: JSON.stringify({ visible }) });
+  if (r?.ok) {
+    const el = document.getElementById(`stog-${key}`);
+    el.className = `section-toggle ${visible ? 'visible' : 'hidden'}`;
+    el.querySelector('.section-toggle-status').textContent = visible ? 'Visible' : 'Hidden';
+    toast(`Section ${visible ? 'shown' : 'hidden'}`);
+  }
+}
+
+// ── CONTENT ──
+async function loadContent() {
+  const r = await apiFetch('/api/admin/content');
+  if (!r) return;
+  const { content } = await r.json();
+  document.getElementById('content-tbody').innerHTML = content.map(c => `
+    <tr>
+      <td><span class="badge badge-client">${c.section}</span></td>
+      <td style="color:var(--muted);font-size:0.8rem">${c.key}</td>
+      <td class="value-cell" id="cv-${c.id}">
+        <span class="editable" onclick="editContent(${c.id}, '${c.section}', '${c.key}', this)">${escHtml(c.value)}</span>
+      </td>
+      <td></td>
+    </tr>`).join('');
+}
+
+function editContent(id, section, key, el) {
+  const val = el.textContent;
+  const long = val.length > 60;
+  el.parentElement.innerHTML = `
+    <div class="inline-form">
+      ${long ? `<textarea id="ci-${id}" rows="3" style="flex:1">${escHtml(val)}</textarea>` : `<input id="ci-${id}" value="${escHtml(val)}" />`}
+      <button class="btn btn-success btn-sm" onclick="saveContent('${section}','${key}',${id})">✓</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadContent()">✕</button>
+    </div>`;
+}
+
+async function saveContent(section, key, id) {
+  const el = document.getElementById(`ci-${id}`);
+  const value = el.value;
+  const r = await apiFetch('/api/admin/content', { method: 'PUT', body: JSON.stringify({ section, key, value }) });
+  if (r?.ok) { toast('Content updated'); loadContent(); } else toast('Failed to save', 'error');
+}
+
+// ── STATS ──
+async function loadStats() {
+  const r = await apiFetch('/api/admin/stats');
+  if (!r) return;
+  const { stats } = await r.json();
+  document.getElementById('stats-tbody').innerHTML = stats.map(s => `
+    <tr>
+      <td><input id="sl-${s.id}" value="${escHtml(s.label)}" style="background:transparent;border:none;color:var(--text);font-family:inherit;font-size:inherit;width:140px;padding:4px 8px;border-radius:6px;border:1px solid transparent" onfocus="this.style.borderColor='var(--border2)'" /></td>
+      <td><input id="sv-${s.id}" value="${escHtml(s.value)}" style="background:transparent;border:none;color:var(--white);font-family:inherit;font-size:inherit;font-weight:700;width:100px;padding:4px 8px;border-radius:6px;border:1px solid transparent" onfocus="this.style.borderColor='var(--border2)'" /></td>
+      <td><button class="btn btn-success btn-sm" onclick="saveStat(${s.id})">Save</button></td>
+    </tr>`).join('');
+}
+
+async function saveStat(id) {
+  const label = document.getElementById(`sl-${id}`).value;
+  const value = document.getElementById(`sv-${id}`).value;
+  const r = await apiFetch(`/api/admin/stats/${id}`, { method: 'PUT', body: JSON.stringify({ label, value }) });
+  if (r?.ok) toast('Stat updated'); else toast('Failed', 'error');
+}
+
+// ── SERVICES ──
+let servicesList = [];
+async function loadServices() {
+  const r = await apiFetch('/api/admin/services');
+  if (!r) return;
+  const { services } = await r.json();
+  servicesList = services;
+  document.getElementById('services-list').innerHTML = services.length ? services.map(s => {
+    const bullets = arrSafe(s.bullet_points);
+    return `
+    <div class="service-item">
+      <div class="item-icon">${s.icon || '📦'}</div>
+      <div class="item-info">
+        <h4>${escHtml(s.title)} ${boolLabel(!!s.active, 'Active', 'Hidden')}</h4>
+        <p>${escHtml(s.description || '')}</p>
+        <p style="margin-top:6px;font-size:0.72rem;color:var(--muted)">${bullets.length ? bullets.map(b => `• ${escHtml(b)}`).join(' &nbsp;') : 'No bullet points added.'}</p>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openServiceModal(${s.id})">Edit</button>
+        <button class="btn ${s.active ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleServiceActive(${s.id}, ${s.active ? 0 : 1})">${s.active ? 'Hide' : 'Show'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('services', ${s.id}, loadServices)">Delete</button>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty-state"><div class="icon">⚙️</div><p>No services yet.</p></div>';
+}
+
+function openServiceModal(id=null) {
+  editingServiceId = id;
+  svBullets = [];
+  document.getElementById('serviceModalTitle').textContent = id ? 'Edit Service' : 'Add Service';
+  if (id) {
+    const s = servicesList.find(x => sameId(x.id, id));
+    if (s) {
+      document.getElementById('sv-icon').value = s.icon;
+      document.getElementById('sv-title').value = s.title;
+      document.getElementById('sv-desc').value = s.description;
+      document.getElementById('sv-order').value = s.sort_order;
+      document.getElementById('sv-active').value = s.active ? '1' : '0';
+      svBullets = [...arr(s.bullet_points)];
+    }
+  } else {
+    ['sv-icon','sv-title','sv-desc','sv-order'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('sv-active').value = '1';
+  }
+  renderSvBullets();
+  openModal('serviceModal');
+}
+
+function renderSvBullets() {
+  document.getElementById('sv-bullet-tags').innerHTML = arrSafe(svBullets).map((b,i) => `<span class="feature-tag">${escHtml(b)}<button onclick="svBullets.splice(${i},1);renderSvBullets()">×</button></span>`).join('');
+}
+
+function addSvBullet() {
+  const inp = document.getElementById('sv-bullet-input');
+  if (inp.value.trim()) { svBullets.push(inp.value.trim()); inp.value=''; renderSvBullets(); }
+}
+
+async function saveService() {
+  const body = { icon: document.getElementById('sv-icon').value||'📦', title: document.getElementById('sv-title').value, description: document.getElementById('sv-desc').value, bullet_points: svBullets, sort_order: parseInt(document.getElementById('sv-order').value)||99, active: parseInt(document.getElementById('sv-active').value) };
+  if (!body.title) { toast('Title required', 'error'); return; }
+  const url = editingServiceId ? `/api/admin/services/${editingServiceId}` : '/api/admin/services';
+  const method = editingServiceId ? 'PUT' : 'POST';
+  const r = await apiFetch(url, { method, body: JSON.stringify(body) });
+  if (r?.ok) { toast('Service saved'); closeModal('serviceModal'); loadServices(); } else toast('Failed', 'error');
+}
+
+async function toggleServiceActive(id, active) {
+  const r = await apiFetch(`/api/admin/services/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ active }) });
+  if (r?.ok) { toast(active ? 'Service shown' : 'Service hidden'); loadServices(); } else toast('Failed', 'error');
+}
+
+// ── FEATURES ──
+let featuresList = [];
+async function loadFeatures() {
+  const r = await apiFetch('/api/admin/features');
+  if (!r) return;
+  const { features } = await r.json();
+  featuresList = features;
+  document.getElementById('features-list').innerHTML = features.length ? features.map(f => `
+    <div class="feature-item">
+      <div class="item-icon">${f.icon || '📦'}</div>
+      <div class="item-info">
+        <h4>${escHtml(f.title)} ${boolLabel(!!f.active, 'Active', 'Hidden')}</h4>
+        <p>${escHtml(f.description || '')}</p>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openFeatureModal(${f.id})">Edit</button>
+        <button class="btn ${f.active ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleFeatureActive(${f.id}, ${f.active ? 0 : 1})">${f.active ? 'Hide' : 'Show'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('features', ${f.id}, loadFeatures)">Delete</button>
+      </div>
+    </div>`).join('') : '<div class="empty-state"><div class="icon">💡</div><p>No features yet.</p></div>';
+}
+
+function openFeatureModal(id=null) {
+  editingFeatureId = id;
+  document.getElementById('featureModalTitle').textContent = id ? 'Edit Feature' : 'Add Feature';
+  if (id) {
+    const f = featuresList.find(x => sameId(x.id, id));
+    if (f) { document.getElementById('f-icon').value=f.icon; document.getElementById('f-title').value=f.title; document.getElementById('f-desc').value=f.description; document.getElementById('f-order').value=f.sort_order; document.getElementById('f-active').value=f.active; }
+  } else {
+    ['f-icon','f-title','f-desc','f-order'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('f-active').value='1';
+  }
+  openModal('featureModal');
+}
+
+async function saveFeature() {
+  const body = { icon: document.getElementById('f-icon').value||'📦', title: document.getElementById('f-title').value, description: document.getElementById('f-desc').value, sort_order: parseInt(document.getElementById('f-order').value)||99, active: parseInt(document.getElementById('f-active').value) };
+  if (!body.title) { toast('Title required','error'); return; }
+  const url = editingFeatureId ? `/api/admin/features/${editingFeatureId}` : '/api/admin/features';
+  const method = editingFeatureId ? 'PUT' : 'POST';
+  const r = await apiFetch(url, { method, body: JSON.stringify(body) });
+  if (r?.ok) { toast('Feature saved'); closeModal('featureModal'); loadFeatures(); } else toast('Failed','error');
+}
+
+async function toggleFeatureActive(id, active) {
+  const r = await apiFetch(`/api/admin/features/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ active }) });
+  if (r?.ok) { toast(active ? 'Feature shown' : 'Feature hidden'); loadFeatures(); } else toast('Failed', 'error');
+}
+
+// ── INDUSTRIES ──
+let industriesList = [];
+async function loadIndustries() {
+  const r = await apiFetch('/api/admin/industries');
+  if (!r) return;
+  const { industries } = await r.json();
+  industriesList = industries;
+  document.getElementById('industries-list').innerHTML = industries.length ? industries.map(i => `
+    <div class="industry-item">
+      <div class="item-icon">${i.icon || '🏢'}</div>
+      <div class="item-info"><h4>${escHtml(i.name)} ${boolLabel(!!i.active, 'Active', 'Hidden')}</h4></div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openIndustryModal(${i.id})">Edit</button>
+        <button class="btn ${i.active ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleIndustryActive(${i.id}, ${i.active ? 0 : 1})">${i.active ? 'Hide' : 'Show'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('industries', ${i.id}, loadIndustries)">Delete</button>
+      </div>
+    </div>`).join('') : '<div class="empty-state"><div class="icon">🏢</div><p>No industries yet.</p></div>';
+}
+
+function openIndustryModal(id=null) {
+  editingIndustryId = id;
+  document.getElementById('industryModalTitle').textContent = id ? 'Edit Industry' : 'Add Industry';
+  if (id) {
+    const i = industriesList.find(x => sameId(x.id, id));
+    if (i) { document.getElementById('i-icon').value=i.icon; document.getElementById('i-name').value=i.name; document.getElementById('i-order').value=i.sort_order; document.getElementById('i-active').value=i.active; }
+  } else {
+    ['i-icon','i-name','i-order'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('i-active').value='1';
+  }
+  openModal('industryModal');
+}
+
+async function saveIndustry() {
+  const body = { icon: document.getElementById('i-icon').value||'🏢', name: document.getElementById('i-name').value, sort_order: parseInt(document.getElementById('i-order').value)||99, active: parseInt(document.getElementById('i-active').value) };
+  if (!body.name) { toast('Name required','error'); return; }
+  const url = editingIndustryId ? `/api/admin/industries/${editingIndustryId}` : '/api/admin/industries';
+  const r = await apiFetch(url, { method: editingIndustryId?'PUT':'POST', body: JSON.stringify(body) });
+  if (r?.ok) { toast('Industry saved'); closeModal('industryModal'); loadIndustries(); } else toast('Failed','error');
+}
+
+async function toggleIndustryActive(id, active) {
+  const r = await apiFetch(`/api/admin/industries/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ active }) });
+  if (r?.ok) { toast(active ? 'Industry shown' : 'Industry hidden'); loadIndustries(); } else toast('Failed', 'error');
+}
+
+// ── PLANS ──
+let plansList = [];
+async function loadPlans() {
+  const r = await apiFetch('/api/admin/plans');
+  if (!r) return;
+  const { plans } = await r.json();
+  plansList = plans;
+  document.getElementById('plans-tbody').innerHTML = plans.map(p => `
+    <tr>
+      <td><strong>${escHtml(p.name)}</strong></td>
+      <td>${p.price===0?'Custom':'₹'+p.price.toLocaleString('en-IN')}</td>
+      <td style="color:var(--muted)">${p.sms_count===-1?'Unlimited':p.sms_count.toLocaleString('en-IN')}</td>
+      <td>${boolLabel(!!p.active, 'Active', 'Hidden')}</td>
+      <td>${p.popular?'<span class="badge badge-popular">⭐ Popular</span>':'—'}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="openPlanModal(${p.id})">Edit</button>
+        <button class="btn ${p.active ? 'btn-danger' : 'btn-success'} btn-sm" onclick="togglePlanActive(${p.id}, ${p.active ? 0 : 1})">${p.active ? 'Hide' : 'Show'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('plans',${p.id},loadPlans)">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openPlanModal(id=null) {
+  editingPlanId = id;
+  planFeatures = [];
+  document.getElementById('planModalTitle').textContent = id ? 'Edit Plan' : 'Add Plan';
+  if (id) {
+    const p = plansList.find(x => sameId(x.id, id));
+    if (p) {
+      document.getElementById('p-name').value=p.name; document.getElementById('p-price').value=p.price;
+      document.getElementById('p-sms').value=p.sms_count; document.getElementById('p-panels').value=p.panels;
+      document.getElementById('p-order').value=p.sort_order; document.getElementById('p-active').value=p.active;
+      document.getElementById('p-popular').value=p.popular;
+      planFeatures = [...arr(p.features)];
+    }
+  } else {
+    ['p-name','p-price','p-sms','p-panels','p-order'].forEach(id => { document.getElementById(id).value=''; });
+    document.getElementById('p-active').value='1'; document.getElementById('p-popular').value='0';
+  }
+  renderPlanFeatures();
+  openModal('planModal');
+}
+
+function renderPlanFeatures() {
+  document.getElementById('plan-feature-tags').innerHTML = arrSafe(planFeatures).map((f,i) => `<span class="feature-tag">${escHtml(f)}<button onclick="planFeatures.splice(${i},1);renderPlanFeatures()">×</button></span>`).join('');
+}
+
+function addPlanFeature() {
+  const inp = document.getElementById('plan-feature-input');
+  if (inp.value.trim()) { planFeatures.push(inp.value.trim()); inp.value=''; renderPlanFeatures(); }
+}
+
+async function savePlan() {
+  const body = { name: document.getElementById('p-name').value, price: parseInt(document.getElementById('p-price').value)||0, sms_count: parseInt(document.getElementById('p-sms').value)||0, panels: parseInt(document.getElementById('p-panels').value)||1, sort_order: parseInt(document.getElementById('p-order').value)||99, active: parseInt(document.getElementById('p-active').value), popular: parseInt(document.getElementById('p-popular').value), features: planFeatures };
+  if (!body.name) { toast('Name required','error'); return; }
+  const url = editingPlanId ? `/api/admin/plans/${editingPlanId}` : '/api/admin/plans';
+  const r = await apiFetch(url, { method: editingPlanId?'PUT':'POST', body: JSON.stringify(body) });
+  if (r?.ok) { toast('Plan saved'); closeModal('planModal'); loadPlans(); } else toast('Failed','error');
+}
+
+async function togglePlanActive(id, active) {
+  const r = await apiFetch(`/api/admin/plans/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ active }) });
+  if (r?.ok) { toast(active ? 'Plan shown' : 'Plan hidden'); loadPlans(); } else toast('Failed', 'error');
+}
+
+// ── USERS ──
+let usersList = [];
+async function loadUsers() {
+  const r = await apiFetch('/api/admin/users');
+  if (!r) return;
+  const { users } = await r.json();
+  usersList = users;
+  document.getElementById('users-tbody').innerHTML = users.map(u => `
+    <tr>
+      <td><strong>${escHtml(u.company_name)}</strong></td>
+      <td style="color:var(--muted);font-size:0.82rem">${escHtml(u.email)}</td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td style="font-size:0.78rem;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis">${u.panel_url ? `<a href="${escHtml(u.panel_url)}" target="_blank" style="color:var(--accent);text-decoration:none" onclick="event.stopPropagation()">🔗 Open</a>` : '—'}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${u.panel_username ? `<span title="User: ${escHtml(u.panel_username)}" style="color:var(--text)">✓ Set</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${u.auto_login ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:100px;font-size:.7rem;font-weight:700;background:rgba(0,229,187,.1);color:#00e5bb;border:1px solid rgba(0,229,187,.25)">⚡ ON</span>` : `<span style="color:var(--muted);font-size:.78rem">OFF</span>`}</td>
+      <td style="font-size:0.82rem">${u.credits?.toLocaleString('en-IN') || 0}</td>
+      <td>${boolLabel(!!u.active, 'Active', 'Inactive')}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="openUserModal(${u.id})">Edit</button>
+        <button class="btn ${u.active ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleUserActive(${u.id}, ${u.active ? 0 : 1})">${u.active ? 'Deactivate' : 'Activate'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('users',${u.id},loadUsers)">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openUserModal(id=null) {
+  editingUserId = id;
+  document.getElementById('userModalTitle').textContent = id ? 'Edit User' : 'Add User';
+  document.getElementById('u-pwd-hint').textContent = id ? '(leave blank to keep)' : '(required)';
+  if (id) {
+    const u = usersList.find(x => sameId(x.id, id));
+    if (u) {
+      document.getElementById('u-company').value=u.company_name; document.getElementById('u-email').value=u.email;
+      document.getElementById('u-password').value=''; document.getElementById('u-role').value=u.role;
+      document.getElementById('u-panel').value=u.panel_url||''; document.getElementById('u-puser').value=u.panel_username||'';
+      document.getElementById('u-ppass').value=u.panel_password||''; document.getElementById('u-credits').value=u.credits||0;
+      document.getElementById('u-active').value = u.active ? '1' : '0';
+      document.getElementById('u-autologin').checked=!!u.auto_login;
+      document.getElementById('auto-login-hint').style.display=u.auto_login?'block':'none';
+      updateAutoLoginBox(!!u.auto_login);
+    }
+  } else {
+    ['u-company','u-email','u-password','u-panel','u-puser','u-ppass'].forEach(id => { document.getElementById(id).value=''; });
+    document.getElementById('u-credits').value='0'; document.getElementById('u-role').value='client'; document.getElementById('u-active').value='1';
+    document.getElementById('u-autologin').checked=false;
+    document.getElementById('auto-login-hint').style.display='none';
+    updateAutoLoginBox(false);
+  }
+  openModal('userModal');
+}
+
+async function saveUser() {
+  const body = { company_name: document.getElementById('u-company').value, email: document.getElementById('u-email').value, role: document.getElementById('u-role').value, panel_url: document.getElementById('u-panel').value||null, panel_username: document.getElementById('u-puser').value||null, panel_password: document.getElementById('u-ppass').value||null, auto_login: document.getElementById('u-autologin').checked ? 1 : 0, credits: parseInt(document.getElementById('u-credits').value)||0, active: parseInt(document.getElementById('u-active').value) };
+  const pwd = document.getElementById('u-password').value;
+  if (pwd) body.password = pwd;
+  if (!editingUserId && !pwd) { toast('Password required for new users','error'); return; }
+  if (!body.email || !body.company_name) { toast('Email and company name required','error'); return; }
+  const url = editingUserId ? `/api/admin/users/${editingUserId}` : '/api/admin/users';
+  const r = await apiFetch(url, { method: editingUserId?'PUT':'POST', body: JSON.stringify(body) });
+  if (r?.ok) { toast('User saved'); closeModal('userModal'); loadUsers(); } else { const d=await r.json(); toast(d.error||'Failed','error'); }
+}
+
+async function toggleUserActive(id, active) {
+  const r = await apiFetch(`/api/admin/users/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ active }) });
+  if (r?.ok) { toast(active ? 'User activated' : 'User deactivated'); loadUsers(); } else toast('Failed', 'error');
+}
+
+
+// ── LEADS ──
+let currentLeadFilter = 'all';
+let currentLeadSearch = '';
+let currentLeadId = null;
+let currentLeadStatus = 'new';
+
+const STATUS_CONFIG = {
+  new:       { label: '🆕 New',       color: '#60a5fa', bg: 'rgba(96,165,250,.12)',  border: 'rgba(96,165,250,.3)'  },
+  contacted: { label: '📞 Contacted', color: '#a78bfa', bg: 'rgba(167,139,250,.12)', border: 'rgba(167,139,250,.3)' },
+  qualified: { label: '✅ Qualified', color: '#34d399', bg: 'rgba(52,211,153,.12)',  border: 'rgba(52,211,153,.3)'  },
+  converted: { label: '🏆 Converted', color: '#fbbf24', bg: 'rgba(251,191,36,.12)',  border: 'rgba(251,191,36,.3)'  },
+  lost:      { label: '❌ Lost',      color: '#f87171', bg: 'rgba(248,113,113,.12)', border: 'rgba(248,113,113,.3)' },
+};
+
+function statusBadge(status) {
+  const s = STATUS_CONFIG[status] || STATUS_CONFIG.new;
+  return `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700;background:${s.bg};color:${s.color};border:1px solid ${s.border}">${s.label}</span>`;
+}
+
+async function loadLeads() {
+  const params = new URLSearchParams();
+  if (currentLeadFilter !== 'all') params.set('status', currentLeadFilter);
+  if (currentLeadSearch) params.set('search', currentLeadSearch);
+  const r = await apiFetch('/api/admin/leads?' + params.toString());
+  if (!r) return;
+  const { leads, counts } = await r.json();
+
+  // Update stat cards
+  Object.entries(counts).forEach(([k, v]) => {
+    const el = document.getElementById('lc-' + k);
+    if (el) el.textContent = v;
+  });
+
+  // Update sidebar badge for new leads
+  const badge = document.getElementById('lead-badge');
+  if (badge) {
+    badge.textContent = counts.new;
+    badge.style.display = counts.new > 0 ? 'inline' : 'none';
+  }
+
+  // Highlight active filter card
+  ['all','new','contacted','qualified','converted','lost'].forEach(k => {
+    const el = document.getElementById('ls-' + k);
+    if (el) el.style.borderColor = k === currentLeadFilter ? 'var(--primary)' : 'var(--border)';
+  });
+
+  // Update filter label
+  const lbl = document.getElementById('lead-filter-label');
+  if (lbl) lbl.textContent = '— ' + (currentLeadFilter === 'all' ? 'All' : (STATUS_CONFIG[currentLeadFilter]?.label || currentLeadFilter));
+
+  // Render table
+  const tbody = document.getElementById('leads-tbody');
+  if (!leads.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">No leads found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = leads.map((l, i) => `
+    <tr style="cursor:pointer" onclick="openLeadModal(${l.id})">
+      <td style="color:var(--muted);font-size:.78rem">#${l.id}</td>
+      <td><strong style="color:var(--white)">${escHtml(l.name)}</strong></td>
+      <td style="color:var(--muted);font-size:.82rem">${escHtml(l.company||'—')}</td>
+      <td style="font-size:.82rem"><a href="mailto:${escHtml(l.email)}" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none">${escHtml(l.email)}</a></td>
+      <td style="color:var(--muted);font-size:.82rem">${escHtml(l.phone||'—')}</td>
+      <td><span class="badge" style="background:rgba(37,99,255,.1);color:#7aa8ff;border-radius:100px;padding:2px 10px;font-size:.72rem;font-weight:600">${escHtml(l.source)}</span></td>
+      <td>${statusBadge(l.status)}</td>
+      <td style="color:var(--muted);font-size:.78rem;white-space:nowrap">${l.created_at.substring(0,16).replace('T',' ')}</td>
+      <td>
+        <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="openLeadModal(${l.id})" title="View Details">👁</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteLead(${l.id})" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterLeads(status) {
+  currentLeadFilter = status;
+  loadLeads();
+}
+
+let searchTimeout;
+function searchLeads(val) {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => { currentLeadSearch = val; loadLeads(); }, 350);
+}
+
+async function openLeadModal(id) {
+  const r = await apiFetch('/api/admin/leads');
+  if (!r) return;
+  const { leads } = await r.json();
+  const lead = leads.find(l => sameId(l.id, id));
+  if (!lead) return;
+  currentLeadId = id;
+  currentLeadStatus = lead.status;
+
+  document.getElementById('leadModalTitle').textContent = 'Lead — ' + lead.name;
+  document.getElementById('lead-notes').value = lead.notes || '';
+
+  document.getElementById('lead-detail-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:18px">
+      <div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Name</div><div style="font-weight:700;color:var(--white)">${escHtml(lead.name)}</div></div>
+      <div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Company</div><div style="color:var(--text)">${escHtml(lead.company||'—')}</div></div>
+      <div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Email</div><a href="mailto:${escHtml(lead.email)}" style="color:var(--accent);text-decoration:none;font-size:.9rem">${escHtml(lead.email)}</a></div>
+      <div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Phone</div><div style="color:var(--text)">${escHtml(lead.phone||'—')}</div></div>
+      <div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Source</div><div style="color:var(--text)">${escHtml(lead.source)}</div></div>
+      <div><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Received</div><div style="color:var(--text);font-size:.85rem">${lead.created_at.substring(0,16).replace('T',' ')}</div></div>
+      ${lead.message ? `<div style="grid-column:span 2"><div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Message</div><div style="color:var(--text);font-size:.875rem;line-height:1.6;background:rgba(255,255,255,.03);padding:10px 12px;border-radius:8px;border:1px solid var(--border)">${escHtml(lead.message)}</div></div>` : ''}
+    </div>`;
+
+  // Status buttons
+document.getElementById('lead-status-btns').innerHTML = Object.entries(STATUS_CONFIG).map(([k, s]) => `
+  <button id="lsb-${k}" 
+    onclick="setLeadStatus('${k}')"
+    style="
+      padding:7px 16px;
+      border-radius:100px;
+      font-size:.78rem;
+      font-weight:700;
+      cursor:pointer;
+      border:1px solid ${s.border};
+      background:${currentLeadStatus===k ? s.bg : 'transparent'};
+      color:${s.color};
+      font-family:DM Sans,sans-serif;
+      transition:all .15s;
+      outline:${currentLeadStatus===k ? '2px solid '+s.color : 'none'};
+      outline-offset:2px
+    ">
+    ${s.label}
+  </button>
+`).join('');
+
+  openModal('leadModal');
+}
+
+function setLeadStatus(status) {
+  currentLeadStatus = status;
+  Object.entries(STATUS_CONFIG).forEach(([k, s]) => {
+    const btn = document.getElementById('lsb-' + k);
+    if (btn) {
+      btn.style.background = k === status ? s.bg : 'transparent';
+      btn.style.outline = k === status ? '2px solid ' + s.color : 'none';
+    }
+  });
+}
+
+async function saveLead() {
+  if (!currentLeadId) {
+    toast('Lead id missing', 'error');
+    return;
+  }
+
+  const notes = document.getElementById('lead-notes').value.trim();
+
+  try {
+    const r = await apiFetch('/api/admin/leads/' + currentLeadId, {
+      method: 'PUT',
+      body: JSON.stringify({
+        status: currentLeadStatus,
+        notes: notes
+      })
+    });
+
+    if (!r) {
+      toast('Request failed or session expired', 'error');
+      return;
+    }
+
+    const data = await r.json().catch(() => ({}));
+
+    if (!r.ok) {
+      toast(data.error || 'Failed to update', 'error');
+      return;
+    }
+
+    toast('Lead updated');
+    closeModal('leadModal');
+    loadLeads();
+  } catch (e) {
+    console.error('saveLead error:', e);
+    toast('Failed to update', 'error');
+  }
+}
+
+async function deleteLead(id) {
+  if (!confirm('Delete this lead permanently?')) return;
+  const r = await apiFetch('/api/admin/leads/' + id, { method: 'DELETE' });
+  if (r?.ok) {
+    toast('Lead deleted');
+    closeModal('leadModal');
+    loadLeads();
+  } else {
+    toast('Failed to delete', 'error');
+  }
+}
+
+// Load lead badge count on init
+async function loadLeadBadge() {
+  const r = await apiFetch('/api/admin/leads?status=new');
+  if (!r) return;
+  const { counts } = await r.json();
+  const badge = document.getElementById('lead-badge');
+  if (badge) {
+    badge.textContent = counts.new;
+    badge.style.display = counts.new > 0 ? 'inline' : 'none';
+  }
+}
+
+// ── ACTIVITY ──
+async function loadActivity() {
+  const r = await apiFetch('/api/admin/activity');
+  if (!r) return;
+  const { logs } = await r.json();
+  document.getElementById('activity-list').innerHTML = logs.length ? logs.map(a => `
+    <div class="activity-item">
+      <div class="activity-dot"></div>
+      <div><div class="activity-action">${a.action}</div><div class="activity-detail">${a.details||'—'} · by ${a.admin_email}</div></div>
+      <div class="activity-time">${a.created_at.substring(0,16).replace('T',' ')}</div>
+    </div>`).join('') : '<div style="color:var(--muted);padding:20px 0">No activity logged yet.</div>';
+}
+
+// ── HELPERS ──
+async function deleteItem(type, id, reload) {
+  if (!confirm('Delete this item?')) return;
+  const r = await apiFetch(`/api/admin/${type}/${id}`, { method: 'DELETE' });
+  if (r?.ok) { toast('Deleted'); reload(); } else toast('Failed to delete','error');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function sameId(a, b) { return Number(a) === Number(b) || String(a) === String(b); }
+function arrSafe(v) { return Array.isArray(v) ? v : []; }
+function boolLabel(v, on='Active', off='Hidden') { return v ? `<span class=\"badge badge-active\">${on}</span>` : `<span class=\"badge badge-inactive\">${off}</span>`; }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+});
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function arr(v) { return Array.isArray(v) ? v : []; }
+
+// ── INIT ──
+if (TOKEN) {
+  apiFetch('/api/auth/me').then(async r => {
+    if (!r) return;
+    const { user } = await r.json();
+    if (user?.role === 'admin') initAdmin(user);
+  });
+}
+// ── AUTO LOGIN HELPERS ──
+function toggleAutoLoginHint() {
+  const checked = document.getElementById('u-autologin').checked;
+  document.getElementById('auto-login-hint').style.display = checked ? 'block' : 'none';
+  updateAutoLoginBox(checked);
+}
+function updateAutoLoginBox(on) {
+  const box = document.getElementById('auto-login-box');
+  if (!box) return;
+  box.style.borderColor = on ? 'rgba(0,229,187,.4)' : 'rgba(37,99,255,.2)';
+  box.style.background = on ? 'rgba(0,229,187,.06)' : 'rgba(37,99,255,.06)';
+}
+</script>
+</body>
+</html>
